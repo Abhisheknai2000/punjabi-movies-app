@@ -8,10 +8,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js (Updated to 24)
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24
 
       - name: Initialize Webview Project
         run: |
@@ -38,11 +38,11 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      # --- iOS Build (Bina Local Mac Ke) ---
-      - name: Build iOS App (Unsigned IPA)
+      # --- iOS Build (Fixed Error Path) ---
+      - name: Build iOS App (Archive Mode)
         run: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphoneos BASE_SDK_DIR=build CODE_SIGNING_ALLOWED=NO
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphoneos -allowProvisioningUpdates CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean build
 
       # --- Upload Files ---
       - name: Upload Android APK Artifact
