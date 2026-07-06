@@ -1,0 +1,58 @@
+name: Build Android and iOS Apps
+on: [push, workflow_dispatch]
+
+jobs:
+  build-apps:
+    runs-on: macos-15
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Initialize Webview Project
+        run: |
+          mkdir public
+          echo '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>App</title><style>body,html,iframe{margin:0;padding:0;height:100%;width:100%;border:none;overflow:hidden;}</style></head><body><iframe src="https://pbtdka.vercel.app/"></iframe></body></html>' > public/index.html
+          npm init -y
+          npm install @capacitor/core @capacitor/cli
+          npx cap init PBTDKA com.pbtdka.app --web-dir=public
+          npm install @capacitor/android @capacitor/ios
+          npx cap add android
+          npx cap add ios
+          npx cap sync
+
+      # --- Android Build ---
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      # --- iOS Build (Bina Local Mac Ke) ---
+      - name: Build iOS App (Unsigned IPA)
+        run: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphoneos BASE_SDK_DIR=build CODE_SIGNING_ALLOWED=NO
+
+      # --- Upload Files ---
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload iOS Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iOS-Build
+          path: ios/App/build/
