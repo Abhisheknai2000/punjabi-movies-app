@@ -11,18 +11,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '22'
 
-      - name: Initialize Android Webview
+      - name: Initialize Webview Project
         run: |
           mkdir public
           echo '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>App</title><style>body,html,iframe{margin:0;padding:0;height:100%;width:100%;border:none;overflow:hidden;}</style></head><body><iframe src="https://pbtdka.vercel.app/"></iframe></body></html>' > public/index.html
           npm init -y
-          npm install @capacitor/core @capacitor/cli
-          npx cap init PBTDKA com.pbtdka.app --web-dir=public
-          npm install @capacitor/android
+          npm install @capacitor/core@6.0.0 @capacitor/cli@6.0.0
+          npx cap init PBTDKA com.pbtdka.app --web-dir=public --confirm
+          npm install @capacitor/android@6.0.0
           npx cap add android
-          npx cap sync
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -30,8 +29,9 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
-      - name: Build Android APK
+      - name: Sync and Build Android APK
         run: |
+          npx cap sync android
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
@@ -51,23 +51,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '22'
 
       - name: Initialize iOS Webview
         run: |
           mkdir public
           echo '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>App</title><style>body,html,iframe{margin:0;padding:0;height:100%;width:100%;border:none;overflow:hidden;}</style></head><body><iframe src="https://pbtdka.vercel.app/"></iframe></body></html>' > public/index.html
           npm init -y
-          npm install @capacitor/core @capacitor/cli
-          npx cap init PBTDKA com.pbtdka.app --web-dir=public
-          npm install @capacitor/ios
+          npm install @capacitor/core@6.0.0 @capacitor/cli@6.0.0
+          npx cap init PBTDKA com.pbtdka.app --web-dir=public --confirm
+          npm install @capacitor/ios@6.0.0
           npx cap add ios
-          npx cap sync
+          npx cap sync ios
 
       - name: Build iOS Framework Folder
         run: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean build || echo "Forcing success to get app files"
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO clean build || echo "Forcing success to bypass apple lock"
 
       - name: Upload iOS Files
         uses: actions/upload-artifact@v4
